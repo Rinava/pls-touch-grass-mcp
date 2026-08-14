@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, rmSync } from "node:fs";
 import { callServer, toolText, tmpState, jsonStub } from "./helpers/rpc.mjs";
 
 function where(id, args = {}) {
@@ -65,6 +65,32 @@ test("map down: the curated spots answer instead", async () => {
   const text = toolText(res, 1);
   assert.match(text, /Grass near Retiro/);
   assert.match(text, /Plaza San Martín/);
+});
+
+test("fresh neighborhood pin beats live geo detection", async () => {
+  const geo = await jsonStub({ latitude: 48.8566, longitude: 2.3522, city: "Paris" });
+  const weather = await jsonStub({ current: { temperature_2m: 20, precipitation: 0, weather_code: 0 } });
+  const file = tmpState();
+  await callServer([where(1, { neighborhood: "Saavedra" })], { GRASS_STATE_FILE: file });
+  const res = await callServer(
+    [{ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "grass_conditions", arguments: {} } }],
+    { GRASS_STATE_FILE: file, GRASS_WEATHER_URL: weather.url, GRASS_GEO_URL: geo.url }
+  );
+  assert.match(weather.hits[0], /latitude=-34.55/);
+  assert.match(toolText(res, 1), /in Saavedra/);
+  geo.close();
+  weather.close();
+  rmSync(file, { force: true });
+});
+
+test("far from the curated list: no confident nonsense", async () => {
+  const file = tmpState();
+  writeFileSync(file, JSON.stringify({ location: { lat: 40.4168, lon: -3.7038, label: "Madrid" } }));
+  const res = await callServer([where(1)], { GRASS_STATE_FILE: file });
+  const text = toolText(res, 1);
+  assert.doesNotMatch(text, /Parque Centenario/);
+  assert.match(text, /only covers Buenos Aires/);
+  rmSync(file, { force: true });
 });
 
 test("saved location is used by grass_conditions afterwards", async () => {

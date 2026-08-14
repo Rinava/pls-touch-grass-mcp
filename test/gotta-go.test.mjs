@@ -33,6 +33,22 @@ test("over the threshold: go outside NOW", async () => {
   rmSync(file, { force: true });
 });
 
+test("odd minutes are not rounded into a lie", async () => {
+  const file = tmpState();
+  seed(file, 90);
+  const res = await callServer([call], { GRASS_STATE_FILE: file });
+  assert.match(toolText(res, 1), /1h 30m ago, you're fine/);
+  rmSync(file, { force: true });
+});
+
+test("just over the threshold says so exactly", async () => {
+  const file = tmpState();
+  seed(file, 121);
+  const res = await callServer([call], { GRASS_STATE_FILE: file });
+  assert.match(toolText(res, 1), /2h 1m inside. Go outside NOW/);
+  rmSync(file, { force: true });
+});
+
 test("threshold_minutes argument tightens the tolerance", async () => {
   const file = tmpState();
   seed(file, 40);

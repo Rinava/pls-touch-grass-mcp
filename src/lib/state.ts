@@ -1,14 +1,24 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { z } from "zod";
 
 export interface GrassState {
   last_grass: { timestamp: string; note?: string } | null;
   rage_count: number;
-  location: { lat: number; lon: number; label: string } | null;
+  location: { lat: number; lon: number; label: string; pinned_at?: string } | null;
 }
 
 const DEFAULTS: GrassState = { last_grass: null, rage_count: 0, location: null };
+
+const StateSchema = z.object({
+  last_grass: z.object({ timestamp: z.string(), note: z.string().optional() }).nullable().catch(null),
+  rage_count: z.number().int().min(0).catch(0),
+  location: z
+    .object({ lat: z.number(), lon: z.number(), label: z.string(), pinned_at: z.string().optional() })
+    .nullable()
+    .catch(null)
+});
 
 function statePath(): string {
   return process.env.GRASS_STATE_FILE ?? join(homedir(), ".pls-touch-grass.json");
@@ -16,7 +26,7 @@ function statePath(): string {
 
 export function readState(): GrassState {
   try {
-    return { ...DEFAULTS, ...JSON.parse(readFileSync(statePath(), "utf8")) };
+    return StateSchema.parse({ ...DEFAULTS, ...JSON.parse(readFileSync(statePath(), "utf8")) });
   } catch {
     return { ...DEFAULTS };
   }
@@ -38,8 +48,9 @@ export function recordGrass(note?: string): GrassState {
 
 export function formatElapsed(mins: number): string {
   if (mins < 60) return `${mins} min`;
-  const h = Math.round(mins / 60);
-  return `${h} ${h === 1 ? "hour" : "hours"}`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h} ${h === 1 ? "hour" : "hours"}` : `${h}h ${m}m`;
 }
 
 export function minutesSinceGrass(state: GrassState = readState()): number | null {
@@ -60,25 +71,37 @@ export const DEMO = process.argv.includes("--demo");
 
 const OBELISCO = { lat: -34.6037, lon: -58.3816, label: "your area (Obelisco)" };
 const DEMO_LOCATION = { lat: -34.6037, lon: -58.3816, label: "Buenos Aires" };
+const PIN_MINUTES = 30;
 
-export function setLocation(loc: { lat: number; lon: number; label: string }): void {
+export function setLocation(loc: { lat: number; lon: number; label: string; pinned_at?: string }): void {
   const state = readState();
   state.location = loc;
   writeState(state);
 }
 
+export function pinLocation(loc: { lat: number; lon: number; label: string }): void {
+  setLocation({ ...loc, pinned_at: new Date().toISOString() });
+}
+
+function freshPin(loc: GrassState["location"]): boolean {
+  return !!loc?.pinned_at && Date.now() - Date.parse(loc.pinned_at) < PIN_MINUTES * 60000;
+}
+
 export async function resolveLocation(explicit?: { lat: number; lon: number; label: string }) {
   if (explicit) return explicit;
   if (DEMO) return DEMO_LOCATION;
-  return (await detectOnce()) ?? readState().location ?? OBELISCO;
+  const saved = readState().location;
+  if (saved && freshPin(saved)) return saved;
+  return (await detectOnce()) ?? saved ?? OBELISCO;
 }
 
 let pending: ReturnType<typeof detectLocation> | null = null;
 
 function detectOnce(): ReturnType<typeof detectLocation> {
   pending ??= detectLocation().then((loc) => {
-    if (loc) setLocation(loc);
-    else pending = null;
+    if (loc) {
+      if (!freshPin(readState().location)) setLocation(loc);
+    } else pending = null;
     return loc;
   });
   return pending;

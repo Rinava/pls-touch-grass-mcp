@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { setLocation, resolveLocation, DEMO } from "../lib/state.js";
+import { pinLocation, resolveLocation, DEMO } from "../lib/state.js";
 
 const SPOTS = [
   { name: "Parque Centenario", hood: "Caballito", lat: -34.6064, lon: -58.4362, note: "good grass, lots of dogs" },
@@ -103,13 +103,22 @@ export default function register(server: McpServer): void {
           return { content: [{ type: "text", text: `I don't know that neighborhood. Try: ${known}.` }] };
         }
         explicit = { lat: hit.lat, lon: hit.lon, label: hit.label };
-        setLocation(explicit);
+        pinLocation(explicit);
       }
       const origin = await resolveLocation(explicit);
       const fromMap = DEMO ? null : await fetchParks(origin);
-      const nearest = (fromMap ?? SPOTS)
+      const ranked = (fromMap ?? SPOTS)
         .map((s) => ({ ...s, m: haversineM(origin, s) }))
-        .sort((a, b) => a.m - b.m)
+        .sort((a, b) => a.m - b.m);
+      if (!fromMap && ranked[0].m > 50_000) {
+        return {
+          content: [{
+            type: "text",
+            text: `No live park data for ${origin.label} and my curated list only covers Buenos Aires. Any green patch counts: find one and report back with touched_grass.`
+          }]
+        };
+      }
+      const nearest = ranked
         .slice(0, 3)
         .map((s) => ("note" in s ? `- ${s.name}: ${s.note}` : `- ${s.name}`));
       return { content: [{ type: "text", text: `Grass near ${origin.label}:\n${nearest.join("\n")}` }] };

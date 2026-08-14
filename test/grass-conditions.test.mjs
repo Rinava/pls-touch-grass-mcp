@@ -101,6 +101,21 @@ test("saved neighborhood no longer pins: fresh detection wins", async () => {
   rmSync(file, { force: true });
 });
 
+test("a pin older than 30 minutes no longer holds: detection wins", async () => {
+  const geo = await jsonStub({ latitude: 48.8566, longitude: 2.3522, city: "Paris" });
+  const stub = await weatherStub({ temperature_2m: 20, precipitation: 0, weather_code: 0 });
+  const file = tmpState();
+  writeFileSync(file, JSON.stringify({
+    location: { lat: -34.618, lon: -58.442, label: "Caballito", pinned_at: new Date(Date.now() - 45 * 60000).toISOString() }
+  }));
+  const res = await callServer([call], { GRASS_STATE_FILE: file, GRASS_WEATHER_URL: stub.url, GRASS_GEO_URL: geo.url });
+  assert.match(stub.hits[0], /latitude=48.8566/);
+  assert.match(toolText(res, 1), /in Paris/);
+  geo.close();
+  stub.close();
+  rmSync(file, { force: true });
+});
+
 test("geo lookup down: falls back to the Obelisco", async () => {
   const stub = await weatherStub({ temperature_2m: 20, precipitation: 0, weather_code: 0 });
   const res = await callServer([call], { GRASS_STATE_FILE: tmpState(), GRASS_WEATHER_URL: stub.url });
