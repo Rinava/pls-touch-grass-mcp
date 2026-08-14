@@ -48,3 +48,10 @@ export function minutesSinceGrass(state: GrassState = readState()): number | nul
 }
 
 export const THRESHOLD_MINUTES = 120;
+
+export function bumpRage(): number {
+  const state = readState();
+  state.rage_count += 1;
+  writeState(state);
+  return state.rage_count;
+}
