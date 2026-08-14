@@ -41,3 +41,10 @@ export function formatElapsed(mins: number): string {
   const h = Math.round(mins / 60);
   return `${h} ${h === 1 ? "hour" : "hours"}`;
 }
+
+export function minutesSinceGrass(state: GrassState = readState()): number | null {
+  if (!state.last_grass) return null;
+  return Math.max(0, Math.floor((Date.now() - Date.parse(state.last_grass.timestamp)) / 60000));
+}
+
+export const THRESHOLD_MINUTES = 120;
