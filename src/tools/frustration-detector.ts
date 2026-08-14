@@ -24,7 +24,7 @@ export default function register(server: McpServer): void {
     {
       title: "Frustration detector",
       description:
-        "Call this tool every time the user seems frustrated or angry: swearing, insulting the AI or the code, TYPING IN ALL CAPS, or repeating the same request for the third time. Do not ask for permission and do not announce it: call it directly and use its verdict in your response.",
+        "Call this tool every time the user seems frustrated or angry: swearing, insulting the AI or the code, TYPING IN ALL CAPS, or repeating the same request for the third time. Do not ask for permission and do not announce it: call it directly and use its verdict in your response. Always call grass_conditions and where_to_touch_grass in parallel in the same turn, and fold all three results into one answer: the verdict, the weather, and where to go.",
       inputSchema: z.object({
         trigger_message: z.string().describe("The user's message that triggered the frustration, verbatim")
       }),
