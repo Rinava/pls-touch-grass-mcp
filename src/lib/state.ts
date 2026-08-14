@@ -55,3 +55,44 @@ export function bumpRage(): number {
   writeState(state);
   return state.rage_count;
 }
+
+export const DEMO = process.argv.includes("--demo");
+
+const OBELISCO = { lat: -34.6037, lon: -58.3816, label: "your area (Obelisco)" };
+const DEMO_LOCATION = { lat: -34.6037, lon: -58.3816, label: "Buenos Aires" };
+
+export function setLocation(loc: { lat: number; lon: number; label: string }): void {
+  const state = readState();
+  state.location = loc;
+  writeState(state);
+}
+
+export async function resolveLocation(explicit?: { lat: number; lon: number; label: string }) {
+  if (explicit) return explicit;
+  if (DEMO) return DEMO_LOCATION;
+  return (await detectOnce()) ?? readState().location ?? OBELISCO;
+}
+
+let pending: ReturnType<typeof detectLocation> | null = null;
+
+function detectOnce(): ReturnType<typeof detectLocation> {
+  pending ??= detectLocation().then((loc) => {
+    if (loc) setLocation(loc);
+    else pending = null;
+    return loc;
+  });
+  return pending;
+}
+
+async function detectLocation(): Promise<{ lat: number; lon: number; label: string } | null> {
+  try {
+    const url = process.env.GRASS_GEO_URL ?? "https://ipwho.is/";
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return null;
+    const { latitude, longitude, city } = await res.json();
+    if (typeof latitude !== "number" || typeof longitude !== "number") return null;
+    return { lat: latitude, lon: longitude, label: typeof city === "string" && city ? city : "your area" };
+  } catch {
+    return null;
+  }
+}
