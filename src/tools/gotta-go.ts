@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { minutesSinceGrass, THRESHOLD_MINUTES, formatElapsed } from "../lib/state.js";
+import { minutesSinceGrass, formatElapsed } from "../lib/state.js";
+import { THRESHOLD_MINUTES } from "../lib/config.js";
 
 export default function register(server: McpServer): void {
   server.registerTool(

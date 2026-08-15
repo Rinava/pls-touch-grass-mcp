@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/server";
-import { resolveLocation, DEMO } from "../lib/state.js";
+import { resolveLocation } from "../lib/state.js";
+import { DEMO } from "../lib/config.js";
 
 const SKY: Record<number, string> = {
   0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "cloudy", 45: "foggy", 48: "foggy"

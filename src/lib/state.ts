@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
+import { DEMO, DEMO_LOCATION, OBELISCO, PIN_MINUTES } from "./config.js";
 
 export interface GrassState {
   last_grass: { timestamp: string; note?: string } | null;
@@ -58,20 +59,12 @@ export function minutesSinceGrass(state: GrassState = readState()): number | nul
   return Math.max(0, Math.floor((Date.now() - Date.parse(state.last_grass.timestamp)) / 60000));
 }
 
-export const THRESHOLD_MINUTES = 120;
-
 export function bumpRage(): number {
   const state = readState();
   state.rage_count += 1;
   writeState(state);
   return state.rage_count;
 }
-
-export const DEMO = process.argv.includes("--demo");
-
-const OBELISCO = { lat: -34.6037, lon: -58.3816, label: "your area (Obelisco)" };
-const DEMO_LOCATION = { lat: -34.6037, lon: -58.3816, label: "Buenos Aires" };
-const PIN_MINUTES = 30;
 
 export function setLocation(loc: { lat: number; lon: number; label: string; pinned_at?: string }): void {
   const state = readState();

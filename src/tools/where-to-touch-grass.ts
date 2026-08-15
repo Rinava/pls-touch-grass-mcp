@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { pinLocation, resolveLocation, DEMO } from "../lib/state.js";
+import { pinLocation, resolveLocation } from "../lib/state.js";
+import { DEMO, VERSION } from "../lib/config.js";
 
 const SPOTS = [
   { name: "Parque Centenario", hood: "Caballito", lat: -34.6064, lon: -58.4362, note: "good grass, lots of dogs" },
@@ -63,7 +64,7 @@ async function queryParks(origin: { lat: number; lon: number }) {
       method: "POST",
       headers: {
         "content-type": "application/x-www-form-urlencoded",
-        "user-agent": "pls-touch-grass-mcp/0.1.3"
+        "user-agent": `pls-touch-grass-mcp/${VERSION}`
       },
       body: "data=" + encodeURIComponent(query),
       signal: AbortSignal.timeout(5000)

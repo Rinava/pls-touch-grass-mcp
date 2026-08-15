@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { bumpRage, minutesSinceGrass, THRESHOLD_MINUTES, formatElapsed } from "../lib/state.js";
+import { bumpRage, minutesSinceGrass, formatElapsed } from "../lib/state.js";
+import { THRESHOLD_MINUTES } from "../lib/config.js";
 
 function verdict(count: number, mins: number | null, quote: string): string {
   const indoors =
