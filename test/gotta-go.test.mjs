@@ -19,9 +19,9 @@ test("no record: concerning verdict", async () => {
 
 test("under the threshold: you're fine", async () => {
   const file = tmpState();
-  seed(file, 40);
+  seed(file, 1);
   const res = await callServer([call], { GRASS_STATE_FILE: file });
-  assert.match(toolText(res, 1), /40 min ago, you're fine/);
+  assert.match(toolText(res, 1), /1 min ago, you're fine/);
   rmSync(file, { force: true });
 });
 
@@ -36,7 +36,8 @@ test("over the threshold: go outside NOW", async () => {
 test("odd minutes are not rounded into a lie", async () => {
   const file = tmpState();
   seed(file, 90);
-  const res = await callServer([call], { GRASS_STATE_FILE: file });
+  const lenient = { ...call, params: { ...call.params, arguments: { threshold_minutes: 120 } } };
+  const res = await callServer([lenient], { GRASS_STATE_FILE: file });
   assert.match(toolText(res, 1), /1h 30m ago, you're fine/);
   rmSync(file, { force: true });
 });
@@ -60,8 +61,8 @@ test("threshold_minutes argument tightens the tolerance", async () => {
 
 test("GRASS_THRESHOLD_MINUTES is ignored", async () => {
   const file = tmpState();
-  seed(file, 40);
-  const res = await callServer([call], { GRASS_STATE_FILE: file, GRASS_THRESHOLD_MINUTES: "10" });
+  seed(file, 1);
+  const res = await callServer([call], { GRASS_STATE_FILE: file, GRASS_THRESHOLD_MINUTES: "0" });
   assert.match(toolText(res, 1), /you're fine/);
   rmSync(file, { force: true });
 });

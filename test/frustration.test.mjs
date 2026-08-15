@@ -10,11 +10,11 @@ function rage(id, msg) {
 test("first outburst with fresh grass: no excuses, go again", async () => {
   const file = tmpState();
   writeFileSync(file, JSON.stringify({
-    last_grass: { timestamp: new Date(Date.now() - 30 * 60000).toISOString() },
+    last_grass: { timestamp: new Date(Date.now() - 1 * 60000).toISOString() },
     rage_count: 0
   }));
   const res = await callServer([rage(1, "this thing is broken")], { GRASS_STATE_FILE: file });
-  assert.match(toolText(res, 1), /30 min ago/);
+  assert.match(toolText(res, 1), /1 min ago/);
   assert.match(toolText(res, 1), /Go again/);
   assert.doesNotMatch(toolText(res, 1), /Breathe/);
   rmSync(file, { force: true });

@@ -83,8 +83,8 @@ it sticks: known neighborhoods resolve offline, anything else is geocoded once t
 OpenStreetMap's Nominatim, and only the words you typed leave your machine. A place
 you named outranks a guess from your IP, until you name a different one.
 
-Indoor tolerance defaults to 120 minutes; tell the model to be strict with you and it
-passes `threshold_minutes` to `gotta_go`. State is one JSON file,
+Indoor tolerance defaults to a merciless 2 minutes; ask the model for clemency and it
+passes a bigger `threshold_minutes` to `gotta_go`. State is one JSON file,
 `~/.pls-touch-grass.json`. Touching grass resets the rage counter. That's how
 absolution works.
 
