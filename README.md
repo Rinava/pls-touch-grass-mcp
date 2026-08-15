@@ -2,14 +2,27 @@
 
 An MCP server that knows how long it's been since you touched grass, and won't shut up about it.
 
-You log when you go outside, it warns you when you've been inside too long, it detects
-when you're raging at your AI and sends you to the nearest park, weather checked first.
-It's a joke, but it's a joke that teaches MCP: five tools, shared state, and
-descriptions that make the model call them on its own.
+You log grass, it tracks indoor time, it catches you raging at your AI and sends you
+to the nearest park, weather checked first. A joke, but one that teaches MCP: five
+tools, shared state, and descriptions that make the model call them unprompted.
 
-## Install in Cursor
+## Install
 
-Add this to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
+### Claude Code
+
+```bash
+claude mcp add pls-touch-grass -s user -- npx -y pls-touch-grass-mcp
+```
+
+`-s user`, or the server only exists in the directory you ran that from. Working from
+a clone, skip the command: there's a `.mcp.json` in the root and Claude Code offers it
+when you open the folder.
+
+### Cursor
+
+[![Add to Cursor](https://img.shields.io/badge/Add_to-Cursor-000000?style=for-the-badge)](https://cursor.com/install-mcp?name=pls-touch-grass&config=eyJjb21tYW5kIjoibnB4IiwiYXJncyI6WyIteSIsInBscy10b3VjaC1ncmFzcy1tY3AiXX0=)
+
+Or the JSON, in `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per project):
 
 ```json
 {
@@ -22,7 +35,19 @@ Add this to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 }
 ```
 
-To hack on it instead, clone and build, then point the config at your copy:
+### Claude Desktop
+
+`.mcpb` from [Releases](https://github.com/Rinava/pls-touch-grass-mcp/releases), then
+Settings → Extensions → Install Extension. Dependencies are bundled; installs offline.
+By hand it's the same JSON as Cursor, in `claude_desktop_config.json`
+(`~/Library/Application Support/Claude/` on macOS, `%APPDATA%\Claude\` on Windows).
+
+### claude.ai
+
+No. Custom connectors want a remote server over HTTPS; this is stdio on your own
+machine. HTTP transport is the first item under [Homework](#homework).
+
+### From source
 
 ```bash
 git clone https://github.com/Rinava/pls-touch-grass-mcp
@@ -30,61 +55,51 @@ cd pls-touch-grass-mcp
 npm ci && npm run build
 ```
 
-```json
-{
-  "mcpServers": {
-    "pls-touch-grass": {
-      "command": "node",
-      "args": ["/absolute/path/to/pls-touch-grass-mcp/dist/index.js"]
-    }
-  }
-}
-```
+Point any config above at `node /absolute/path/to/dist/index.js` instead.
 
-(To get every verdict without waiting two hours, tell the model "be strict with me,
-one minute of tolerance": `gotta_go` takes a `threshold_minutes` argument.)
+`npx -y` downloads the package on first start — live audiences and venue wifi deserve
+a warm cache. Published on npm as `pls-touch-grass-mcp`, in the MCP Registry as
+`io.github.Rinava/pls-touch-grass`.
 
 ## The five tools
 
 | Tool | What it does | When the model calls it |
 |------|--------------|-------------------------|
-| `touched_grass` | Logs that you went outside | "back from the park", "went for a walk" |
-| `gotta_go` | Do you need to go out? | "can I keep going?", "how long have I been at this?" |
+| `touched_grass` | Logs that you went outside | "back from the park" |
+| `gotta_go` | Do you need to go out? | "can I keep going?" |
 | `frustration_detector` | Catches the rage and escalates | on its own, when you snap; that's the point |
-| `grass_conditions` | Real weather (Open-Meteo, no API key) | before sending you outside |
-| `where_to_touch_grass` | Nearby parks from OpenStreetMap, curated spots offline | "where should I go?" |
+| `grass_conditions` | Real weather (Open-Meteo, no key) | before sending you outside |
+| `where_to_touch_grass` | Nearby parks with distances (OpenStreetMap) | "where should I go?", or when you name a place |
 
-The magic is in the descriptions: nobody teaches the model to detect frustration.
-The tool description does it alone. Type "NOTHING WORKS!!!" and watch what happens.
+Nobody teaches the model to detect frustration: the tool description does it alone.
+Type "NOTHING WORKS!!!" and watch.
 
 ## Zero configuration
 
-There is nothing to configure: everything resolves through the tools themselves.
-Your location is detected fresh from your IP (via [ipwho.is](https://ipwho.is)) each
-time the server runs. City-level on purpose, nothing more precise leaves your
-machine. If detection fails you get the last known spot, or failing that the
-Obelisco, like everyone else. Name a neighborhood to `where_to_touch_grass` to
-search there instead; it holds for the next half hour, so the weather in the same
-conversation agrees with it, then fresh detection takes over again. The indoor-time
-tolerance defaults to 120 minutes; ask the model to be stricter and it passes
-`threshold_minutes` to `gotta_go`.
+Location resolves fresh from your IP ([ipwho.is](https://ipwho.is)) each run —
+city-level on purpose. Detection down: last known spot, then the Obelisco, like
+everyone else. Name a neighborhood or a street address to `where_to_touch_grass` and
+it sticks: known neighborhoods resolve offline, anything else is geocoded once through
+OpenStreetMap's Nominatim, and only the words you typed leave your machine. A place
+you named outranks a guess from your IP, until you name a different one.
 
-State is a JSON file in your home directory: `cat ~/.pls-touch-grass.json` and you'll
-see it. Touching grass resets the rage counter. That's how absolution works.
+Indoor tolerance defaults to 120 minutes; tell the model to be strict with you and it
+passes `threshold_minutes` to `gotta_go`. State is one JSON file,
+`~/.pls-touch-grass.json`. Touching grass resets the rage counter. That's how
+absolution works.
 
 ## The demo curse
 
 Live demos summon it: the venue wifi dies the moment you say "watch this". Add
-`--demo` to the `args` in your MCP config and every answer goes canned: 22°C and
-clear, the Obelisco, the curated spots. Zero network calls, zero surprises.
-Off by default; real life should stay real.
+`--demo` to the `args` and every answer goes canned — 22°C and clear, the Obelisco,
+the curated spots. Zero network calls, zero surprises. Off by default; real life
+should stay real.
 
 ## Follow the workshop
 
-The repo is tagged by step, so you can rebuild the talk:
+The repo is tagged by step:
 
 ```bash
-git clone https://github.com/Rinava/pls-touch-grass-mcp
 git checkout step-1   # stdio server + touched_grass
 git checkout step-2   # + gotta_go (state and threshold)
 git checkout step-3   # + frustration_detector (the demo)
@@ -98,10 +113,16 @@ MCP SDK and zod.
 
 ## Homework
 
-- HTTP transport: SDK v2 ships express/hono/fastify adapters
+- HTTP transport: `createMcpHandler` in SDK v2 serves the same factory over fetch, and it's what gets you onto claude.ai
 - Per-project thresholds instead of a global one
 - Streak tracking for consecutive grass days
-- Spots for your own city, via PR: the format is one object per park, with an opinion
+- Demo spots for your own city, via PR: one object per park in `src/lib/demo.ts`, with an opinion
+
+## Release
+
+`npm run build:mcpb` packs `dist` and the production dependencies into
+`pls-touch-grass-mcp-<version>.mcpb`, the file that goes on a GitHub Release. The
+manifest is generated from `package.json`; nothing to keep in sync by hand.
 
 ## License
 

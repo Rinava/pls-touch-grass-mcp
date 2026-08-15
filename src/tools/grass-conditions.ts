@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 import { resolveLocation } from "../lib/state.js";
-import { DEMO } from "../lib/config.js";
+import { DEMO, DEMO_WEATHER } from "../lib/demo.js";
 
 const SKY: Record<number, string> = {
   0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "cloudy", 45: "foggy", 48: "foggy"
@@ -21,7 +21,7 @@ export default function register(server: McpServer): void {
       const { lat, lon, label } = await resolveLocation();
       try {
         let data;
-        if (DEMO) data = { current: { temperature_2m: 22, precipitation: 0, weather_code: 0 } };
+        if (DEMO) data = DEMO_WEATHER;
         if (!data) {
           const base = process.env.GRASS_WEATHER_URL ?? "https://api.open-meteo.com/v1/forecast";
           const res = await fetch(

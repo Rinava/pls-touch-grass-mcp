@@ -30,6 +30,7 @@ export async function callServer(requests, env = {}, args = []) {
       ...process.env,
       GRASS_GEO_URL: "http://127.0.0.1:1/geo",
       GRASS_PARKS_URL: "http://127.0.0.1:1/parks",
+      GRASS_GEOCODE_URL: "http://127.0.0.1:1/geocode",
       ...env
     },
     stdio: ["pipe", "pipe", "pipe"]

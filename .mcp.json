@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "pls-touch-grass": {
+      "command": "npx",
+      "args": ["-y", "pls-touch-grass-mcp"]
+    }
+  }
+}

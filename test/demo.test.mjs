@@ -18,14 +18,14 @@ test("--demo: curated spots with their notes", async () => {
   const res = await callServer([where], { GRASS_STATE_FILE: tmpState(), GRASS_PARKS_URL: parks.url }, ["--demo"]);
   const text = toolText(res, 1);
   assert.match(text, /Grass near Buenos Aires/);
-  assert.match(text, /Plaza San Martín: the most corporate grass in the city/);
+  assert.match(text, /Plaza San Martín \(~1\.2 km\): the most corporate grass in the city/);
   assert.doesNotMatch(text, /Plaza Fantasma/);
   assert.equal(parks.hits.length, 0);
   parks.close();
 });
 
 test("--demo: a named neighborhood still wins", async () => {
-  const call = { ...where, params: { ...where.params, arguments: { neighborhood: "Caballito" } } };
+  const call = { ...where, params: { ...where.params, arguments: { place: "Caballito" } } };
   const res = await callServer([call], { GRASS_STATE_FILE: tmpState() }, ["--demo"]);
   assert.match(toolText(res, 1), /Grass near Caballito/);
 });

@@ -2,7 +2,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod";
-import { DEMO, DEMO_LOCATION, OBELISCO, PIN_MINUTES } from "./config.js";
+import { OBELISCO } from "./config.js";
+import { DEMO, DEMO_LOCATION } from "./demo.js";
 
 export interface GrassState {
   last_grass: { timestamp: string; note?: string } | null;
@@ -76,15 +77,11 @@ export function pinLocation(loc: { lat: number; lon: number; label: string }): v
   setLocation({ ...loc, pinned_at: new Date().toISOString() });
 }
 
-function freshPin(loc: GrassState["location"]): boolean {
-  return !!loc?.pinned_at && Date.now() - Date.parse(loc.pinned_at) < PIN_MINUTES * 60000;
-}
-
 export async function resolveLocation(explicit?: { lat: number; lon: number; label: string }) {
   if (explicit) return explicit;
   if (DEMO) return DEMO_LOCATION;
   const saved = readState().location;
-  if (saved && freshPin(saved)) return saved;
+  if (saved?.pinned_at) return saved;
   return (await detectOnce()) ?? saved ?? OBELISCO;
 }
 
@@ -93,7 +90,7 @@ let pending: ReturnType<typeof detectLocation> | null = null;
 function detectOnce(): ReturnType<typeof detectLocation> {
   pending ??= detectLocation().then((loc) => {
     if (loc) {
-      if (!freshPin(readState().location)) setLocation(loc);
+      if (!readState().location?.pinned_at) setLocation(loc);
     } else pending = null;
     return loc;
   });
