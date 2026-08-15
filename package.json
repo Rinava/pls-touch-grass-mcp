@@ -1,7 +1,7 @@
 {
   "name": "pls-touch-grass-mcp",
-  "version": "0.1.1",
-  "mcpName": "io.github.rinava/pls-touch-grass",
+  "version": "0.1.2",
+  "mcpName": "io.github.Rinava/pls-touch-grass",
   "description": "An MCP server that knows how long it's been since you touched grass",
   "type": "module",
   "license": "MIT",
