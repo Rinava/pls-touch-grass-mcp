@@ -9,29 +9,7 @@ descriptions that make the model call them on its own.
 
 ## Install in Cursor
 
-Clone and build first:
-
-```bash
-git clone https://github.com/Rinava/pls-touch-grass-mcp
-cd pls-touch-grass-mcp
-npm ci && npm run build
-```
-
-Then add this to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project),
-with the absolute path to your clone:
-
-```json
-{
-  "mcpServers": {
-    "pls-touch-grass": {
-      "command": "node",
-      "args": ["/absolute/path/to/pls-touch-grass-mcp/dist/index.js"]
-    }
-  }
-}
-```
-
-Once the package is published to npm, `npx` will skip the clone:
+Add this to `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
 
 ```json
 {
@@ -39,6 +17,25 @@ Once the package is published to npm, `npx` will skip the clone:
     "pls-touch-grass": {
       "command": "npx",
       "args": ["-y", "pls-touch-grass-mcp"]
+    }
+  }
+}
+```
+
+To hack on it instead, clone and build, then point the config at your copy:
+
+```bash
+git clone https://github.com/Rinava/pls-touch-grass-mcp
+cd pls-touch-grass-mcp
+npm ci && npm run build
+```
+
+```json
+{
+  "mcpServers": {
+    "pls-touch-grass": {
+      "command": "node",
+      "args": ["/absolute/path/to/pls-touch-grass-mcp/dist/index.js"]
     }
   }
 }
