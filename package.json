@@ -42,7 +42,7 @@
     "test": "npm run build && node --test",
     "probe": "npm run build && node scripts/probe.mjs",
     "probe:live": "node scripts/probe.mjs --live",
-    "mcp:local": "npm run build && (claude mcp remove pls-touch-grass -s local >/dev/null 2>&1 || true) && claude mcp add pls-touch-grass -s local -- node \"$PWD/dist/index.js\"",
+    "mcp:local": "(claude mcp remove pls-touch-grass -s local >/dev/null 2>&1 || true) && claude mcp add pls-touch-grass -s local -- sh -c \"cd '$PWD' && ./node_modules/.bin/tsc 1>&2 && exec node dist/index.js\"",
     "mcp:npm": "claude mcp remove pls-touch-grass -s local",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build"
