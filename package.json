@@ -1,18 +1,41 @@
 {
   "name": "pls-touch-grass-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.rinava/pls-touch-grass",
   "description": "An MCP server that knows how long it's been since you touched grass",
   "type": "module",
   "license": "MIT",
   "author": "Lara Mateo",
-  "repository": { "type": "git", "url": "git+https://github.com/Rinava/pls-touch-grass-mcp.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rinava/pls-touch-grass-mcp.git"
+  },
   "homepage": "https://github.com/Rinava/pls-touch-grass-mcp#readme",
-  "bugs": { "url": "https://github.com/Rinava/pls-touch-grass-mcp/issues" },
-  "keywords": ["mcp", "modelcontextprotocol", "cursor", "touch-grass", "buenos-aires"],
-  "engines": { "node": ">=20" },
-  "bin": { "pls-touch-grass-mcp": "./dist/index.js" },
+  "bugs": {
+    "url": "https://github.com/Rinava/pls-touch-grass-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "cursor",
+    "claude",
+    "ai",
+    "productivity",
+    "break-reminder",
+    "touch-grass"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "pls-touch-grass-mcp": "dist/index.js"
+  },
   "main": "./dist/index.js",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "npm run build && node --test",
