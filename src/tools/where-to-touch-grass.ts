@@ -42,18 +42,31 @@ function normalize(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
 }
 
+type Park = { name: string; lat: number; lon: number };
+
+let parkCache: { key: string; parks: Promise<Park[] | null>; at: number } | null = null;
+
 async function fetchParks(origin: { lat: number; lon: number }) {
+  const key = `${origin.lat.toFixed(2)},${origin.lon.toFixed(2)}`;
+  if (parkCache?.key === key && Date.now() - parkCache.at < 600_000) return parkCache.parks;
+  const parks = queryParks(origin);
+  parkCache = { key, parks, at: Date.now() };
+  if (!(await parks)) parkCache = null;
+  return parks;
+}
+
+async function queryParks(origin: { lat: number; lon: number }) {
   try {
     const base = process.env.GRASS_PARKS_URL ?? "https://overpass-api.de/api/interpreter";
-    const query = `[out:json][timeout:2];nwr[leisure=park](around:3000,${origin.lat},${origin.lon});out center 30;`;
+    const query = `[out:json][timeout:6];nwr[leisure=park](around:3000,${origin.lat},${origin.lon});out center 30;`;
     const res = await fetch(base, {
       method: "POST",
       headers: {
         "content-type": "application/x-www-form-urlencoded",
-        "user-agent": "pls-touch-grass-mcp/0.1.0"
+        "user-agent": "pls-touch-grass-mcp/0.1.3"
       },
       body: "data=" + encodeURIComponent(query),
-      signal: AbortSignal.timeout(3000)
+      signal: AbortSignal.timeout(5000)
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -66,7 +79,7 @@ async function fetchParks(origin: { lat: number; lon: number }) {
       .filter(
         (p: { name?: string; lat?: number; lon?: number }) =>
           typeof p.name === "string" && typeof p.lat === "number" && typeof p.lon === "number"
-      ) as { name: string; lat: number; lon: number }[];
+      ) as Park[];
     return parks.length ? parks : null;
   } catch {
     return null;

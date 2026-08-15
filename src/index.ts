@@ -8,7 +8,7 @@ import grassConditions from "./tools/grass-conditions.js";
 import whereToTouchGrass from "./tools/where-to-touch-grass.js";
 
 void serveStdio(() => {
-  const server = new McpServer({ name: "pls-touch-grass-mcp", version: "0.1.2" });
+  const server = new McpServer({ name: "pls-touch-grass-mcp", version: "0.1.3" });
   touchedGrass(server);
   gottaGo(server);
   frustrationDetector(server);
