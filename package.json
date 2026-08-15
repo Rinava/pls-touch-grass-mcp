@@ -1,6 +1,6 @@
 {
   "name": "pls-touch-grass-mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "mcpName": "io.github.Rinava/pls-touch-grass",
   "description": "An MCP server that knows how long it's been since you touched grass",
   "type": "module",
