@@ -12,6 +12,7 @@ test("nice weather: verdict with temperature", async () => {
   const res = await callServer([call], { GRASS_STATE_FILE: tmpState(), GRASS_WEATHER_URL: stub.url });
   assert.match(toolText(res, 1), /22°C and clear/);
   assert.match(toolText(res, 1), /Perfect grass weather/);
+  assert.doesNotMatch(toolText(res, 1), /Plan B:/);
   assert.match(stub.hits[0], /latitude=-34.6037/);
   stub.close();
 });
@@ -21,6 +22,7 @@ test("rain: you're forgiven", async () => {
   const res = await callServer([call], { GRASS_STATE_FILE: tmpState(), GRASS_WEATHER_URL: stub.url });
   assert.match(toolText(res, 1), /raining/);
   assert.match(toolText(res, 1), /forgiven until it stops/);
+  assert.match(toolText(res, 1), /Plan B:/);
   stub.close();
 });
 
@@ -28,6 +30,7 @@ test("extreme heat: find shade", async () => {
   const stub = await weatherStub({ temperature_2m: 38, precipitation: 0, weather_code: 0 });
   const res = await callServer([call], { GRASS_STATE_FILE: tmpState(), GRASS_WEATHER_URL: stub.url });
   assert.match(toolText(res, 1), /grass burns/);
+  assert.match(toolText(res, 1), /Plan B:/);
   stub.close();
 });
 
