@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/server";
 import { resolveLocation } from "../lib/state.js";
 import { DEMO, DEMO_WEATHER } from "../lib/demo.js";
+import { getPlanB } from "../lib/plan-b.js";
 
 const SKY: Record<number, string> = {
   0: "clear", 1: "mostly clear", 2: "partly cloudy", 3: "cloudy", 45: "foggy", 48: "foggy"
@@ -33,12 +34,17 @@ export default function register(server: McpServer): void {
         }
         const { temperature_2m: temp, precipitation, weather_code: code } = data.current;
         if (![temp, precipitation, code].every((v) => typeof v === "number")) throw new Error("bad payload");
-        const text =
+        let text =
           precipitation > 0 || RAIN_CODES.has(code)
             ? `It's raining in ${label} (${precipitation} mm). You're forgiven until it stops.`
             : temp >= 35
               ? `${temp}°C in ${label}. The grass burns; find shade or go later.`
               : `${temp}°C and ${SKY[code] ?? "questionable sky"} in ${label}. Perfect grass weather.`;
+        
+        if (precipitation > 0 || RAIN_CODES.has(code) || temp >= 35) {
+          text += `\n\n${getPlanB()}`;
+        }
+        
         return { content: [{ type: "text", text }] };
       } catch {
         return { content: [{ type: "text", text: "Couldn't check the weather, go outside anyway" }] };
