@@ -1,5 +1,9 @@
 # pls-touch-grass-mcp
 
+[![npm](https://img.shields.io/npm/v/pls-touch-grass-mcp)](https://www.npmjs.com/package/pls-touch-grass-mcp)
+[![ci](https://github.com/Rinava/pls-touch-grass-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/Rinava/pls-touch-grass-mcp/actions/workflows/ci.yml)
+[![license: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 An MCP server that knows how long it's been since you touched grass, and won't shut up about it.
 
 You log grass, it tracks indoor time, it catches you raging at your AI and sends you
@@ -123,6 +127,13 @@ MCP SDK and zod.
 `npm run build:mcpb` packs `dist` and the production dependencies into
 `pls-touch-grass-mcp-<version>.mcpb`, the file that goes on a GitHub Release. The
 manifest is generated from `package.json`; nothing to keep in sync by hand.
+
+## Contributing
+
+Issues and PRs welcome — the [Homework](#homework) list is seeded as
+[open issues](https://github.com/Rinava/pls-touch-grass-mcp/issues), several
+tagged `good first issue`. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and
+the house rules (there are few, but the demo-spot opinion is mandatory).
 
 ## License
 

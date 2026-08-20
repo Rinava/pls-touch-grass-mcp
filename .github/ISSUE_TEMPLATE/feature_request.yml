@@ -1,0 +1,27 @@
+name: Feature request
+description: An idea that would get more people outside
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What should it do, and who touches more grass because of it?
+    validations:
+      required: true
+  - type: textarea
+    id: shape
+    attributes:
+      label: How it might work
+      description: >
+        New tool? A change to an existing one? Which words should trigger it?
+        Sketches welcome, none required.
+    validations:
+      required: false
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Ground rules check
+      options:
+        - label: This doesn't need a new runtime dependency (we have two and we're proud of it)
+        - label: I'd like to build this myself

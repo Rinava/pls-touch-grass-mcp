@@ -1,0 +1,50 @@
+name: Bug report
+description: Something is broken, or the model refuses to send you outside
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you get instead?
+    validations:
+      required: true
+  - type: textarea
+    id: exact-words
+    attributes:
+      label: What you typed
+      description: >
+        If the bug is "the model didn't call a tool" (or called the wrong one),
+        paste the exact words you typed. Tool descriptions are the product here;
+        reproducing a trigger failure starts with the exact prompt.
+    validations:
+      required: false
+  - type: input
+    id: client
+    attributes:
+      label: MCP client
+      placeholder: Claude Code / Claude Desktop / Cursor / other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Package version, or the commit if running from source
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: os-node
+    attributes:
+      label: OS and Node version
+      placeholder: "macOS 15, Node 22"
+    validations:
+      required: false
+  - type: checkboxes
+    id: demo-mode
+    attributes:
+      label: Mode
+      options:
+        - label: Reproduces with `--demo` (no network involved)
+        - label: Only happens live (network calls involved)
