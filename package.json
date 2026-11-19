@@ -39,6 +39,7 @@
   "scripts": {
     "build": "tsc",
     "build:mcpb": "npm run build && node scripts/build-mcpb.mjs",
+    "build:openai": "node scripts/build-openai-plugin.mjs",
     "test": "npm run build && node --test",
     "probe": "npm run build && node scripts/probe.mjs",
     "probe:live": "node scripts/probe.mjs --live",
