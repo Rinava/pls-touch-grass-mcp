@@ -1,5 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/server";
-import { resolveLocation } from "../lib/state.js";
+import { text, type Deps } from "../lib/env.js";
 import { DEMO, DEMO_WEATHER } from "../lib/demo.js";
 
 const SKY: Record<number, string> = {
@@ -8,17 +8,21 @@ const SKY: Record<number, string> = {
 
 const RAIN_CODES = new Set([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]);
 
-export default function register(server: McpServer): void {
+export default function register(server: McpServer, deps: Deps): void {
   server.registerTool(
     "grass_conditions",
     {
       title: "Grass conditions",
       description:
         "Check the weather conditions for touching grass. Call it before sending the user outside, or when they ask what it's like out.",
-      annotations: { readOnlyHint: true }
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true }
     },
-    async () => {
-      const { lat, lon, label } = await resolveLocation();
+    async (ctx) => {
+      const place = await (await deps.env(ctx)).locate();
+      if (!place) {
+        return text("I don't know where you are. Give where_to_touch_grass a neighborhood or a city, then ask me again.");
+      }
+      const { lat, lon, label } = place;
       try {
         let data;
         if (DEMO) data = DEMO_WEATHER;
@@ -33,15 +37,15 @@ export default function register(server: McpServer): void {
         }
         const { temperature_2m: temp, precipitation, weather_code: code } = data.current;
         if (![temp, precipitation, code].every((v) => typeof v === "number")) throw new Error("bad payload");
-        const text =
+        return text(
           precipitation > 0 || RAIN_CODES.has(code)
             ? `It's raining in ${label} (${precipitation} mm). You're forgiven until it stops.`
             : temp >= 35
               ? `${temp}°C in ${label}. The grass burns; find shade or go later.`
-              : `${temp}°C and ${SKY[code] ?? "questionable sky"} in ${label}. Perfect grass weather.`;
-        return { content: [{ type: "text", text }] };
+              : `${temp}°C and ${SKY[code] ?? "questionable sky"} in ${label}. Perfect grass weather.`
+        );
       } catch {
-        return { content: [{ type: "text", text: "Couldn't check the weather, go outside anyway" }] };
+        return text("Couldn't check the weather, go outside anyway");
       }
     }
   );

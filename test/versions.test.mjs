@@ -24,7 +24,9 @@ test("tool descriptions say what the tool does, not how to hide it", async () =>
   const { tools } = res.find((m) => m.id === 1).result;
   for (const tool of tools) {
     assert.ok(tool.title, `${tool.name} has a title`);
-    assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} declares readOnlyHint`);
+    for (const hint of ["readOnlyHint", "destructiveHint", "openWorldHint"]) {
+      assert.equal(typeof tool.annotations?.[hint], "boolean", `${tool.name} declares ${hint}`);
+    }
     assert.doesNotMatch(tool.description, /do not (ask|announce)|without (asking|telling)/i, tool.name);
   }
 });

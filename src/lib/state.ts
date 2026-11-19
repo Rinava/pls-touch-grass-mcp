@@ -55,7 +55,7 @@ export function formatElapsed(mins: number): string {
   return m === 0 ? `${h} ${h === 1 ? "hour" : "hours"}` : `${h}h ${m}m`;
 }
 
-export function minutesSinceGrass(state: GrassState = readState()): number | null {
+export function minutesSinceGrass(state: GrassState): number | null {
   if (!state.last_grass) return null;
   return Math.max(0, Math.floor((Date.now() - Date.parse(state.last_grass.timestamp)) / 60000));
 }
@@ -77,8 +77,7 @@ export function pinLocation(loc: { lat: number; lon: number; label: string }): v
   setLocation({ ...loc, pinned_at: new Date().toISOString() });
 }
 
-export async function resolveLocation(explicit?: { lat: number; lon: number; label: string }) {
-  if (explicit) return explicit;
+export async function resolveLocation() {
   if (DEMO) return DEMO_LOCATION;
   const saved = readState().location;
   if (saved?.pinned_at) return saved;
