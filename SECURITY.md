@@ -8,10 +8,11 @@ Older versions get fixes by becoming the latest version.
 ## What this thing actually touches
 
 Worth knowing before you report: the server runs locally over stdio, keeps its
-state in `~/.pls-touch-grass.json`, and talks to three public APIs — ipwho.is
-(IP geolocation), Open-Meteo (weather), and OpenStreetMap Nominatim (geocoding,
-only the place names you type). No keys, no accounts, no telemetry. `--demo`
-mode makes zero network calls.
+state in `~/.pls-touch-grass.json`, and talks to four public APIs — ipwho.is
+(IP geolocation), Open-Meteo (weather), OpenStreetMap Nominatim (geocoding,
+only the place names you type), and OpenStreetMap Overpass (parks near a
+coordinate). No keys, no accounts, no telemetry. `--demo` mode makes zero
+network calls. [PRIVACY.md](PRIVACY.md) has the full list of what goes where.
 
 ## Reporting a vulnerability
 
