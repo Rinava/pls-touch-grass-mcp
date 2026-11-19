@@ -25,8 +25,14 @@ A PR that adds a dependency needs a very good story.
 - `npm run probe:live` — same, but with real network calls
 - `npm run mcp:local` — register your working copy with Claude Code so you can
   yell at it in person
+- `npm run start:http` — build + serve the hosted flavor on `localhost:3000/mcp`,
+  without memory unless you hand it an Upstash database
 
 Every tool lives in its own file under `src/tools/`, shared bits under `src/lib/`.
+The same five tools run over stdio and over HTTP: a tool never reads state or
+guesses a location itself, it asks the `GrassEnv` it is handed (`src/lib/env.ts`).
+`src/lib/local.ts` is that for one person and one JSON file, `src/hosted/` for
+everyone else.
 Each tool has a matching test in `test/`. New behavior comes with a test; that's
 how every step of the workshop stayed honest and it's how PRs stay honest too.
 
