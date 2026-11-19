@@ -50,12 +50,20 @@ export async function callServer(requests, env = {}, args = []) {
     { jsonrpc: "2.0", method: "notifications/initialized" },
     ...requests
   ];
+  // A real client holds stdin open while it waits. Closing it early makes the SDK
+  // shut the server down and drop any reply still in flight, so hang up only
+  // once every request has its answer.
+  const waiting = new Set(msgs.filter((m) => "id" in m).map((m) => m.id));
+  const parse = (text) => text.split("\n").filter(Boolean).map((l) => JSON.parse(l));
   proc.stdin.write(msgs.map((m) => JSON.stringify(m) + "\n").join(""));
-  proc.stdin.end();
   let out = "";
-  proc.stdout.on("data", (d) => (out += d));
+  proc.stdout.on("data", (d) => {
+    out += d;
+    for (const m of parse(out.slice(0, out.lastIndexOf("\n") + 1))) waiting.delete(m.id);
+    if (waiting.size === 0) proc.stdin.end();
+  });
   await once(proc, "close");
-  return out.split("\n").filter(Boolean).map((l) => JSON.parse(l));
+  return parse(out);
 }
 
 export function toolText(responses, id) {
