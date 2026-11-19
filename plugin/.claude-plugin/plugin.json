@@ -1,0 +1,17 @@
+{
+  "name": "pls-touch-grass",
+  "displayName": "pls touch grass",
+  "version": "0.3.1",
+  "description": "Knows how long it's been since you touched grass. Tracks your indoor time, notices when you're raging at your AI, and sends you to the nearest park, weather checked first.",
+  "author": {
+    "name": "Lara Mateo",
+    "url": "https://github.com/Rinava"
+  },
+  "homepage": "https://github.com/Rinava/pls-touch-grass-mcp#readme",
+  "repository": "https://github.com/Rinava/pls-touch-grass-mcp",
+  "license": "MIT",
+  "keywords": ["touch-grass", "break-reminder", "productivity", "weather", "parks"],
+  "documentationUrl": "https://github.com/Rinava/pls-touch-grass-mcp#readme",
+  "supportUrl": "https://github.com/Rinava/pls-touch-grass-mcp/issues",
+  "privacyPolicyUrl": "https://github.com/Rinava/pls-touch-grass-mcp/blob/main/PRIVACY.md"
+}
