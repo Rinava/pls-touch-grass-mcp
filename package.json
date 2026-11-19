@@ -39,17 +39,19 @@
   "scripts": {
     "build": "tsc",
     "build:mcpb": "npm run build && node scripts/build-mcpb.mjs",
+    "build:openai": "node scripts/build-openai-plugin.mjs",
     "test": "npm run build && node --test",
     "probe": "npm run build && node scripts/probe.mjs",
     "probe:live": "node scripts/probe.mjs --live",
     "mcp:local": "(claude mcp remove pls-touch-grass -s local >/dev/null 2>&1 || true) && claude mcp add pls-touch-grass -s local -- sh -c \"cd '$PWD' && ./node_modules/.bin/tsc 1>&2 && exec node dist/index.js\"",
     "mcp:npm": "claude mcp remove pls-touch-grass -s local",
     "start": "node dist/index.js",
+    "start:http": "npm run build && node dist/http.js",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.0.0",
-    "zod": "^4.2.0"
+    "@modelcontextprotocol/server": "2.4.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "typescript": "^5.9.0",

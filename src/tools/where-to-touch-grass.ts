@@ -1,35 +1,10 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { pinLocation, resolveLocation } from "../lib/state.js";
-import { NEIGHBORHOODS, NOMINATIM_URL, OVERPASS_URLS, VERSION } from "../lib/config.js";
+import { text, type Deps } from "../lib/env.js";
+import { NEIGHBORHOODS, OVERPASS_URLS, VERSION } from "../lib/config.js";
 import { DEMO, DEMO_SPOTS } from "../lib/demo.js";
 
-function normalize(s: string): string {
-  return s.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
-}
-
 type Spot = { name: string; lat: number; lon: number; note?: string };
-
-async function geocode(place: string): Promise<{ lat: number; lon: number; label: string } | null> {
-  try {
-    const base = process.env.GRASS_GEOCODE_URL ?? NOMINATIM_URL;
-    const res = await fetch(`${base}?q=${encodeURIComponent(place)}&format=jsonv2&limit=1&addressdetails=1`, {
-      headers: { "user-agent": `pls-touch-grass-mcp/${VERSION}` },
-      signal: AbortSignal.timeout(4000)
-    });
-    if (!res.ok) return null;
-    const hit = (await res.json())?.[0];
-    const lat = Number(hit?.lat);
-    const lon = Number(hit?.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-    const a = hit.address ?? {};
-    const label =
-      a.suburb ?? a.neighbourhood ?? a.town ?? a.village ?? a.city ?? String(hit.display_name ?? place).split(",")[0];
-    return { lat, lon, label };
-  } catch {
-    return null;
-  }
-}
 
 let parkCache: { key: string; parks: Promise<Spot[] | null>; at: number } | null = null;
 
@@ -75,7 +50,8 @@ async function askOverpass(base: string, origin: { lat: number; lon: number }) {
         (p: { name?: string; lat?: number; lon?: number }) =>
           typeof p.name === "string" && typeof p.lat === "number" && typeof p.lon === "number"
       ) as Spot[];
-    return parks.length ? parks : null;
+    // An answer with no parks in it is an answer: asking twice more won't grow any.
+    return parks;
   } catch {
     return null;
   }
@@ -95,51 +71,55 @@ function formatDistance(m: number): string {
   return `~${(m / 1000).toFixed(1)} km`;
 }
 
-export default function register(server: McpServer): void {
+const LOCAL = {
+  description:
+    "Suggest nearby places to touch grass. Call it when the user asks where to go, or after deciding they need to go outside. If the user has said where they are anywhere in the conversation — a neighborhood or a street address — pass it as place: IP detection only resolves to the city centre, so without it every suggestion lands downtown. Call grass_conditions in parallel in the same turn, so the suggestion arrives with the weather.",
+  place: "Neighborhood or street address, e.g. 'Palermo' or 'Av. Rivadavia 6500, Buenos Aires'",
+  notFound: () =>
+    `Couldn't find that place. Try a street address, or one of: ${Object.values(NEIGHBORHOODS).map((n) => n.label).join(", ")}.`
+};
+
+// Hosted, nobody's IP is looked up and the caller could be anywhere on Earth,
+// so the copy stops talking about IPs and about Buenos Aires.
+const HOSTED = {
+  description:
+    "Suggest nearby places to touch grass. Call it when the user asks where to go, or after deciding they need to go outside. If the user has said where they are anywhere in the conversation — a neighborhood, a city or a street address — pass it as place: the location the app shares is city-level at best and sometimes missing, so without it suggestions land downtown or not at all. A place passed here is remembered for that user. Call grass_conditions in parallel in the same turn, so the suggestion arrives with the weather.",
+  place: "Neighborhood, city or street address, with the city when you know it, e.g. 'Palermo, Buenos Aires' or 'Av. Rivadavia 6500, Buenos Aires'",
+  notFound: () => "Couldn't find that place. Try a street address with its city, or a neighborhood and its city."
+};
+
+export default function register(server: McpServer, deps: Deps): void {
+  const copy = deps.hosted ? HOSTED : LOCAL;
   server.registerTool(
     "where_to_touch_grass",
     {
       title: "Where to touch grass",
-      description:
-        "Suggest nearby places to touch grass. Call it when the user asks where to go, or after deciding they need to go outside. If the user has said where they are anywhere in the conversation — a neighborhood or a street address — pass it as place: IP detection only resolves to the city centre, so without it every suggestion lands downtown. Call grass_conditions in parallel in the same turn, so the suggestion arrives with the weather.",
-      inputSchema: z.object({
-        place: z
-          .string()
-          .describe("Neighborhood or street address, e.g. 'Palermo' or 'Av. Rivadavia 6500, Buenos Aires'")
-          .optional()
-      }),
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
+      description: copy.description,
+      inputSchema: z.object({ place: z.string().describe(copy.place).optional() }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true }
     },
-    async ({ place }) => {
+    async ({ place }, ctx) => {
+      const env = await deps.env(ctx);
       let explicit;
       if (place) {
-        const hit = NEIGHBORHOODS[normalize(place)];
-        const found = hit ? { lat: hit.lat, lon: hit.lon, label: hit.label } : await geocode(place);
-        if (!found) {
-          const known = Object.values(NEIGHBORHOODS).map((n) => n.label).join(", ");
-          return {
-            content: [{ type: "text", text: `Couldn't find that place. Try a street address, or one of: ${known}.` }]
-          };
-        }
-        explicit = found;
-        pinLocation(explicit);
+        explicit = await env.findPlace(place);
+        if (!explicit) return text(copy.notFound());
+        await env.pinLocation(explicit);
       }
-      const origin = await resolveLocation(explicit);
+      const origin = explicit ?? (await env.locate());
+      if (!origin) return text("Where are you? Name a neighborhood, a city or a street address and I'll find the grass.");
       const spots: Spot[] | null = DEMO ? DEMO_SPOTS : await fetchParks(origin);
-      if (!spots) {
-        return {
-          content: [{
-            type: "text",
-            text: `No park data for ${origin.label} right now. Any green patch counts: find one and report back with touched_grass.`
-          }]
-        };
+      if (!spots?.length) {
+        return text(
+          `No park data for ${origin.label} right now. Any green patch counts: find one and report back with touched_grass.`
+        );
       }
       const nearest = spots
         .map((s) => ({ ...s, m: haversineM(origin, s) }))
         .sort((a, b) => a.m - b.m)
         .slice(0, 5)
         .map((s) => `- ${s.name} (${formatDistance(s.m)})${s.note ? `: ${s.note}` : ""}`);
-      return { content: [{ type: "text", text: `Grass near ${origin.label}:\n${nearest.join("\n")}` }] };
+      return text(`Grass near ${origin.label}:\n${nearest.join("\n")}`);
     }
   );
 }

@@ -14,6 +14,13 @@ only the place names you type), and OpenStreetMap Overpass (parks near a
 coordinate). No keys, no accounts, no telemetry. `--demo` mode makes zero
 network calls. [PRIVACY.md](PRIVACY.md) has the full list of what goes where.
 
+There is also a hosted copy at `https://grass.laramateo.com/mcp` (`src/http.ts`,
+`src/hosted/`). It has no sign-in: a user is whoever the calling app's anonymous
+id says they are, and their state (last grass, outburst count, a place they
+named) sits in Upstash Redis under a keyed hash of that id for 30 days. It never
+looks up an IP address. Reports about it are as welcome as reports about the
+package.
+
 ## Reporting a vulnerability
 
 Please don't open a public issue for security problems. Instead, use

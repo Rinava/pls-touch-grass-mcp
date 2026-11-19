@@ -1,0 +1,94 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pls-touch-grass",
+  "version": "0.3.1",
+  "description": "A break tracker that knows how long it's been since you touched grass, and won't shut up about it.",
+  "author": {
+    "name": "Lara Mateo",
+    "url": "https://laramateo.com"
+  },
+  "homepage": "https://grass.laramateo.com",
+  "repository": "https://github.com/Rinava/pls-touch-grass-mcp",
+  "license": "MIT",
+  "keywords": ["breaks", "wellbeing", "productivity", "weather", "parks"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "pls touch grass",
+        "shortDescription": "Break timer with park advice",
+        "longDescription": "Tell it when you've been outside and it keeps count. Ask whether you can keep working and it answers with how long you've been in, against a limit you can loosen. When it's time to go, it checks the current weather and lists parks near you with rough distances. It also notices when you're losing your temper at your work, counts the outbursts, and sends you out.\n\nFor anyone who works at a screen and forgets to leave it. The tone is blunt on purpose.\n\nLimits: it only knows about breaks you tell it about, and forgets them 30 days after you last used it. It reports current weather, not a forecast. Parks and weather come from OpenStreetMap and Open-Meteo and can be missing or wrong. It has no reminders and cannot message you first. It is not medical or mental-health advice.",
+        "developerName": "Lara Mateo",
+        "category": "Productivity",
+        "capabilities": ["Log outdoor breaks", "Check time since the last break", "Check current weather", "Find nearby parks"],
+        "websiteURL": "https://grass.laramateo.com",
+        "supportURL": "https://grass.laramateo.com/support",
+        "privacyPolicyURL": "https://grass.laramateo.com/privacy",
+        "termsOfServiceURL": "https://grass.laramateo.com/terms",
+        "defaultPrompt": [
+          "I just got back from a walk in the park.",
+          "How long have I been inside? Can I keep working?",
+          "Where can I touch grass near me, and what's it like out?"
+        ],
+        "brandColor": "#2E7D32",
+        "brandColorDark": "#81C784",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Log an outdoor break",
+              "prompt": "I just got back from a 20 minute walk in the park.",
+              "tools_triggered": "touched_grass",
+              "expected_behavior": "Confirms the break was logged, quoting the note about the walk. The reply includes the clock time when ChatGPT shares the user's timezone."
+            },
+            {
+              "description": "Check whether a break is due",
+              "prompt": "How long have I been inside? Can I keep working?",
+              "tools_triggered": "gotta_go",
+              "expected_behavior": "Reports the time since the last logged break. Within the default 2 minute limit it says the user is fine; past it, it says to go outside now. With no break ever logged it says there is no grass on record."
+            },
+            {
+              "description": "Check against a looser limit",
+              "prompt": "I allow myself three hours indoors. Am I still within that?",
+              "tools_triggered": "gotta_go",
+              "expected_behavior": "Calls gotta_go with threshold_minutes 180. If a break was logged in the last three hours (run the first case beforehand), it says the user is fine and how long ago the break was."
+            },
+            {
+              "description": "Find parks and weather for a named place",
+              "prompt": "Where can I touch grass near Palermo, Buenos Aires, and what's the weather like there?",
+              "tools_triggered": "where_to_touch_grass, grass_conditions",
+              "expected_behavior": "Lists up to five parks near Palermo with approximate distances, and gives the current temperature and sky for that area. The place is remembered for later calls."
+            },
+            {
+              "description": "Catch a frustrated outburst",
+              "prompt": "NOTHING WORKS!!! This is the third time I've asked for this fix and it's STILL broken.",
+              "tools_triggered": "frustration_detector, grass_conditions, where_to_touch_grass",
+              "expected_behavior": "Logs the outburst and replies with a verdict on how long the user has been indoors, together with the current weather and nearby parks for the place remembered from the previous case. The user's message itself is not sent to the server."
+            }
+          ],
+          "negative": [
+            {
+              "description": "An unrelated factual question. Nothing about breaks, weather or parks, so no tool should run.",
+              "prompt": "What's the capital of Australia?"
+            },
+            {
+              "description": "The phrase appears but the task is a translation. The plugin should not log a break or look anything up.",
+              "prompt": "Translate the phrase 'touch grass' into Spanish and French."
+            },
+            {
+              "description": "A scheduled reminder. The plugin cannot schedule anything or message the user first, so it should not be used to pretend it can.",
+              "prompt": "Set a reminder to take a break at 3pm tomorrow."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "This plugin sells nothing and processes no payments."
+      },
+      "publication": {
+        "release_notes": "First release. Five tools: log an outdoor break, check how long you've been inside, catch a frustrated outburst, check the current weather, and find nearby parks."
+      }
+    }
+  }
+}

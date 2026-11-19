@@ -3,3 +3,4 @@ dist/
 .env
 .mcpb-build/
 *.mcpb
+*.zip

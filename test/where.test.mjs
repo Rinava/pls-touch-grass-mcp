@@ -37,6 +37,14 @@ test("known neighborhood: top five by distance, location persisted", async () =>
   rmSync(file, { force: true });
 });
 
+test("a map that answers with no parks is believed, not asked twice more", async () => {
+  const parks = await jsonStub({ elements: [] });
+  const res = await callServer([where(1, { place: "Retiro" })], { GRASS_STATE_FILE: tmpState(), GRASS_PARKS_URL: parks.url });
+  assert.match(toolText(res, 1), /No park data for Retiro/);
+  assert.equal(parks.hits.length, 1);
+  parks.close();
+});
+
 test("accents and case do not matter", async () => {
   const res = await callServer([where(1, { place: "nuñez" })], { GRASS_STATE_FILE: tmpState() });
   assert.match(toolText(res, 1), /Núñez/);

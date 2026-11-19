@@ -58,10 +58,24 @@ claude --plugin-dir ./plugin
 It launches the published npm package at a pinned version, so it runs in Claude Code
 and in Cowork sessions on your own machine.
 
+### ChatGPT, and anything else that wants HTTPS
+
+There is a hosted copy at `https://grass.laramateo.com/mcp`: the same five tools, no
+sign-in, nothing to install. It tells people apart by the anonymous id ChatGPT sends
+with each call, takes its location from the coarse hint the app shares instead of
+your IP, and forgets you after 30 days of silence. `frustration_detector` takes no
+arguments there, so your outburst stays in the chat it happened in.
+[PRIVACY.md](PRIVACY.md#the-hosted-server) has the full account.
+
+To run your own, `npm run start:http` serves it on `PORT` (3000 unless told).
+Give it `KV_REST_API_URL` and `KV_REST_API_TOKEN` from an Upstash Redis database
+and it remembers; without them every answer comes with amnesia.
+
 ### claude.ai
 
-No. Custom connectors want a remote server over HTTPS; this is stdio on your own
-machine. HTTP transport is the first item under [Homework](#homework).
+Custom connectors want a remote server over HTTPS, which the hosted copy above is.
+It has no memory there: the grass log is filed under a user id, and claude.ai does
+not send one. The tools say so instead of pretending.
 
 ### From source
 
@@ -129,7 +143,7 @@ MCP SDK and zod.
 
 ## Homework
 
-- HTTP transport: `createMcpHandler` in SDK v2 serves the same factory over fetch, and it's what gets you onto claude.ai
+- A user id that isn't ChatGPT's, so the hosted server remembers people on other clients too
 - Per-project thresholds instead of a global one
 - Streak tracking for consecutive grass days
 - Demo spots for your own city, via PR: one object per park in `src/lib/demo.ts`, with an opinion
@@ -140,9 +154,13 @@ MCP SDK and zod.
 `pls-touch-grass-mcp-<version>.mcpb`, the file that goes on a GitHub Release. The
 manifest is generated from `package.json`; nothing to keep in sync by hand.
 
-Two files do carry the version by hand: `server.json` and the plugin's pin in
-`plugin/`. `npm test` fails until both agree with `package.json`, so a release
-can't forget them. Publish to npm before merging a new pin: the plugin directory
+Three places do carry the version by hand: `server.json`, the plugin's pin in
+`plugin/`, and `openai-plugin/plugin.json`. `npm test` fails until all of them
+agree with `package.json`, so a release can't forget one.
+
+`npm run build:openai` zips [`openai-plugin/`](openai-plugin) into the file OpenAI's
+plugin directory takes. It holds the listing and the hosted server's address, no
+code: the hosted server updates when its deployment does. Publish to npm before merging a new pin: the plugin directory
 follows `main`, and a pin to an unpublished version starts nothing.
 
 ## Contributing
