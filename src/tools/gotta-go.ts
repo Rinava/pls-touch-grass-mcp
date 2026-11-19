@@ -12,7 +12,7 @@ export default function register(server: McpServer): void {
         "Check whether the user needs to go outside and touch grass. Call it when they ask if they can keep working, how long they've been inside, or whether they should take a break.",
       inputSchema: z.object({
         threshold_minutes: z.number().int().positive()
-          .describe("Minutes of indoor time tolerated, if the user wants a stricter or looser regime than the default 120")
+          .describe(`Minutes of indoor time tolerated, if the user wants a stricter or looser regime than the default ${THRESHOLD_MINUTES}`)
           .optional()
       }),
       annotations: { readOnlyHint: true }
