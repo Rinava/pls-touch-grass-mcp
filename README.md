@@ -46,6 +46,18 @@ Settings → Extensions → Install Extension. Dependencies are bundled; install
 By hand it's the same JSON as Cursor, in `claude_desktop_config.json`
 (`~/Library/Application Support/Claude/` on macOS, `%APPDATA%\Claude\` on Windows).
 
+### Claude plugin
+
+[`plugin/`](plugin) wraps the same server as a Claude plugin, the shape Anthropic's
+plugin directory takes local servers in. From a clone:
+
+```bash
+claude --plugin-dir ./plugin
+```
+
+It launches the published npm package at a pinned version, so it runs in Claude Code
+and in Cowork sessions on your own machine.
+
 ### claude.ai
 
 No. Custom connectors want a remote server over HTTPS; this is stdio on your own
@@ -127,6 +139,11 @@ MCP SDK and zod.
 `npm run build:mcpb` packs `dist` and the production dependencies into
 `pls-touch-grass-mcp-<version>.mcpb`, the file that goes on a GitHub Release. The
 manifest is generated from `package.json`; nothing to keep in sync by hand.
+
+Two files do carry the version by hand: `server.json` and the plugin's pin in
+`plugin/`. `npm test` fails until both agree with `package.json`, so a release
+can't forget them. Publish to npm before merging a new pin: the plugin directory
+follows `main`, and a pin to an unpublished version starts nothing.
 
 ## Contributing
 
