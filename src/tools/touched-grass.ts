@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/server";
-import { recordGrass } from "../lib/state.js";
+import { text, type Deps } from "../lib/env.js";
 
-export default function register(server: McpServer): void {
+export default function register(server: McpServer, deps: Deps): void {
   server.registerTool(
     "touched_grass",
     {
@@ -12,16 +12,16 @@ export default function register(server: McpServer): void {
       inputSchema: z.object({
         note: z.string().describe("What they did outside, e.g. 'went to the park'").optional()
       }),
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false }
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false }
     },
-    async ({ note }) => {
-      const state = recordGrass(note);
-      const time = new Date(state.last_grass!.timestamp).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    async ({ note }, ctx) => {
+      const env = await deps.env(ctx);
       const noted = note ? ` Noted: "${note}".` : "";
-      return { content: [{ type: "text", text: `Grass touched at ${time}. Good for you.${noted}` }] };
+      if (!env.remembers) {
+        return text(`Good for you.${noted} This app doesn't tell me who you are, so I can't keep your grass log here.`);
+      }
+      const time = env.clock(new Date(await env.recordGrass(note)));
+      return text(`Grass touched${time ? ` at ${time}` : ""}. Good for you.${noted}`);
     }
   );
 }
